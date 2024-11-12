@@ -164,3 +164,4 @@ cython_debug/
 # Egan ingnors
 athlete_events.csv
 noc_regions.csv
+File-maker.py
