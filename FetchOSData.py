@@ -4,12 +4,16 @@ import hashlib as hl
 
 class OsDataFetcher:
 
-    def __init__(self, file_path):
+    def __init__(self, file_path, en_col = None):
         """ Loads data from path. Functions to make filtered dataframes and save as csv file
+        file_path: str - Local path to file
+        en_col: str - Encrypts column and drops original column. Defult is None
         """
         self._path = file_path
         self.data = pd.read_csv(file_path)
-        self.encrypt_col_name()
+        
+        if en_col:
+            self.encrypt_col(en_col)
 
 
     def os_filtered_dataframe(self, col, filter):
@@ -23,12 +27,18 @@ class OsDataFetcher:
 
         return  df
     
-    def encrypt_col_name(self):
+    def encrypt_col(self, col):
+        """Encrypts column "Name" to SHA256 hash key
+        """
+        try:
+            self.data[col] = self.data[col].astype(str)
+        
+        except KeyError:
+            print(f"There is no column named {col}.")
 
-        self.data["Name"] = self.data["Name"].astype(str)
-        hashes = self.data["Name"].apply(lambda name: hl.sha256(name.encode() ).hexdigest())
+        hashes = self.data[col].apply(lambda name: hl.sha256(name.encode() ).hexdigest())
         self.data.insert(1, "Hash values", hashes)
-        self.data.drop(columns="Name", inplace=True)
+        self.data.drop(columns=col, inplace=True)
 
     
     def os_data_saver(self, name, data): 
