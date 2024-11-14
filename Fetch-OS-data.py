@@ -2,7 +2,8 @@ import pandas as pd
 from pathlib import Path  
 class OsDataFetcher:
 
-    
+    def __init__(self):
+        self._os_data = os_data
 # Load file and filter
 os_data = pd.read_csv("../Projekt-OS/Data/athlete_events.csv")
 
