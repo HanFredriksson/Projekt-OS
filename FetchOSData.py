@@ -1,4 +1,5 @@
 import pandas as pd
+import hashlib as hl
 
 
 class OsDataFetcher:
@@ -8,6 +9,7 @@ class OsDataFetcher:
         """
         self._path = file_path
         self.data = pd.read_csv(file_path)
+        self.encrypt_col_name()
 
 
     def os_filtered_dataframe(self, col, filter):
@@ -20,6 +22,14 @@ class OsDataFetcher:
         df = self.data[self.data[col] == filter]
 
         return  df
+    
+    def encrypt_col_name(self):
+
+        self.data["Name"] = self.data["Name"].astype(str)
+        hashes = self.data["Name"].apply(lambda name: hl.sha256(name.encode() ).hexdigest())
+        self.data.insert(1, "Hash values", hashes)
+        self.data.drop(columns="Name", inplace=True)
+
     
     def os_data_saver(self, name, data): 
         """Save file as CSV in the original files path\n
