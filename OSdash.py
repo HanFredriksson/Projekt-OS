@@ -1,3 +1,10 @@
+"""
+Here we keep all the code that runs the dashboard, creats the graphs and handels the data from
+the data calss.
+The functions for what the graphs needs to show can be made here
+Remeber there is a filter funktion built in the FetchOSData to make a general filtration of the data.
+"""
+
 from FetchOSData import OsDataFetcher
 import dash
 
@@ -10,9 +17,7 @@ app = dash.Dash(__name__)
 # Dicts for filtering dataframe 
 
 app.layout = html.Div([])
-# How do we want to present our dataset and graphs? 
-# What funktionality do the layout need?
-# What look do we want? 
+
 
 def drawing_graph():
     # Graph function needs to have abilty to draw diffrent kinds of graphs
