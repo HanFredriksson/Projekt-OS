@@ -162,6 +162,6 @@ cython_debug/
 #.idea/
 
 # Egan ingnors
-athlete_events.csv
 noc_regions.csv
-Fetch-OS-data.py
+Anteckingar.ipynb
+test.py
