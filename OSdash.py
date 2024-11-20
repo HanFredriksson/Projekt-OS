@@ -40,15 +40,20 @@ def number_of_medals_per_os():
     # Show how the medals where spread over the diffrent Olympices
     pass
 
-def gender_distrbution_italy():
+def gender_distrbution_sport():
     # Comparing an average over won medals devided in medal denomination
     pass
 
 
 # Sports stats data to visualize for 2-4 sports: Swimming, Alpine Skiing, Rowing, Cross Country Skiing
-def age_spread_in_the_sports():
-    # Show how the medals spread over the ages in the sport
-    pass
+def age_spread_in_the_sports(sport):
+# Show how the medals spread over the ages in the sport
+    sport_df = os_data.os_filtered_dataframe("Sport", sport)
+    madal_age = sport_df.groupby("Age")["Medal"].count().reset_index()
+    madal_age.columns = ["Age", "Medal Count"]
+    
+    return madal_age
+    
 
 def medal_spread_for_countries_in_sport():
     # Show how the medals spread over the countries in the sport
