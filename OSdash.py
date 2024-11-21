@@ -1,9 +1,13 @@
 from FetchOSData import OsDataFetcher
 import dash
+import pandas as pd
+import plotly_express as px 
 
 # The variabels we need
 os_data = OsDataFetcher("../Projekt-OS/Data/athlete_events.csv", "Name")
-ita_os_data = os_data.os_filtered_dataframe("NOC", "ITA")
+sports = ["Swimming", "Alpine Skiing", "Rowing", "Cross Country Skiing"]
+sex = {"Female": "F", "Male": "M"}
+medals = ["Gold", "Silver", "Bronze"]
 
 app = dash.Dash(__name__)
 # Dicts with key for what we want to filter for showing in the graphs.
@@ -15,10 +19,20 @@ app = dash.Dash(__name__)
 app.layout = html.Div([])
 
 
-def drawing_graph():
-    # Graph function needs to have abilty to draw diffrent kinds of graphs
-    # Graphs needed: Histogram, Pie chart, Line chart, box chart
-    pass
+def show_graf(data, cat, graf):
+    """
+    param data: data frame to plot
+    peram cat: the span of the data
+    peram graf: type of graf "bar", "line", "histo"
+    """
+    
+    if graf == "bar":
+        fig = px.bar(data, x=data.index, y= cat, barmode= "stack")
+    if graf == "line":
+        fig = px.line(data, x=data.index, y= cat)
+    if graf == "histo":
+        fig = px.histogram(data, x=data.index, y= cat, nbins = 14)
+    return fig
 
 
 def calc_averge():
@@ -46,23 +60,42 @@ def gender_distrbution_sport():
 
 
 # Sports stats data to visualize for 2-4 sports: Swimming, Alpine Skiing, Rowing, Cross Country Skiing
-def age_spread_in_the_sports(sport):
-# Show how the medals spread over the ages in the sport
-    sport_df = os_data.os_filtered_dataframe("Sport", sport)
-    madal_age = sport_df.groupby("Age")["Medal"].count().reset_index()
-    madal_age.columns = ["Age", "Medal Count"]
-    
-    return madal_age
-    
+def age_spread_in_the_sports():
+    # Show how the medals spread over the ages in the sport
+    pass
 
 def medal_spread_for_countries_in_sport():
     # Show how the medals spread over the countries in the sport
     pass
 
 def gender_distrbution_sports():
-    # Comparing an average over won medals up in medal denomination
+    # Comparing an over won medals up in medal denomination
     pass
 
+def medal_counter(pick, filter, count_in):
+    """Counts the medals from picked country or sport from
+    a grouped column. 
+    Retruns a data frame with total and each variation of medal 
+    with count_in as index
+
+    param pick: are sport or country
+    param filter: Wich sport or country
+    param count_in: For wich columne to count medals
+
+    """
+    dff = os_data.os_filtered_dataframe(pick, filter)
+
+    gold_medal = dff[dff["Medal"] == "Gold"].groupby(count_in).size()
+    silver_medal = dff[dff["Medal"] == "Silver"].groupby(count_in).size()
+    bronze_medal = dff[dff["Medal"] == "Bronze"].groupby(count_in).size()
+
+    medal_count = pd.DataFrame({"Gold medals": gold_medal,
+                                "Silver medals": silver_medal,
+                                "Bronze Medals": bronze_medal,
+                                "Total": gold_medal + silver_medal + bronze_medal
+                                }).fillna(0).astype(int)
+
+    return medal_count
 
 
 
