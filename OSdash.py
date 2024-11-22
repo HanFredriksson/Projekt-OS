@@ -1,8 +1,9 @@
 from FetchOSData import OsDataFetcher
 import dash
 import pandas as pd
-import plotly_express as px 
-
+import plotly.express as px 
+from dash import html, dcc
+from dash.dependencies import Output, Input
 # The variabels we need
 os_data = OsDataFetcher("../Projekt-OS/Data/athlete_events.csv", "Name")
 sports = ["Swimming", "Alpine Skiing", "Rowing", "Cross Country Skiing"]
@@ -16,7 +17,26 @@ app = dash.Dash(__name__)
 # Or filter funktion of the class is a general filter making smaller dataframes, like one for each sport
 # 
 
-app.layout = html.Div([])
+app.layout = html.Div([
+    html.H1("OS Italy Data", style= {'background': 'gold', 'text-align': 'center'}), 
+    html.Label("Choose a Type Of Visualization"),
+    dcc.Dropdown(
+        id = 'Visualization-type',
+        options=[
+            {'label': 'Calculation Avrage', 'value': 'calc_averge'},
+            {'label': 'Medals Per Year', 'value': 'medals_per_year'},
+            {'label': 'The Most Medals By Sport', 'value': 'most_medals_per_sport'},
+            {'label': 'Medals Per OS', 'value': 'medals_per_os'},
+            {'label': 'Gender Distribution by Sport', 'value': 'gender_distribution_sport'},
+            {'label': 'Age Spread in the Sport', 'value': 'age_spread_in_the_sports'},
+            
+            ],
+        placeholder="Select a visualization"
+       
+    ),
+    dcc.Graph()
+])
+
 
 
 def show_graf(data, cat, graf):
