@@ -28,36 +28,69 @@ app = dash.Dash(__name__)
 
 app.layout = html.Div([
     html.H1("OS Data Analyser"),
-    
-
     html.Div([
-        html.Label("What catogory too look into:"),
-        dcc.RadioItems(id="ita-or-sports", options=picker, value="Italy")
-    ]),
-    html.Div(
-        id = "sport-selector", 
-        style = {"display": "none"},
-        children=[
-            html.Label("Choose a sport:"),
-            dcc.RadioItems(id="sport-picker", 
-                           options=[{"label": sport, "value": sport} for sport in sports], 
-                           value="Swimming"),
 
-            html.Label("Choose a filter:"),
-            dcc.RadioItems(id="filter-sport", 
-                           options=[{"label": key, "value": value} for key, value in sport_filters.items()], 
-                           value="Age"),
-                           
+        html.Label("What category to look into:", style={"width": "200px", "display": "inline-block"}),
+        dcc.Dropdown(
+            id="ita-or-sports", 
+            options=[{"label": k, "value": v} for k, v in picker.items()], 
+            value="Italy",
+            style={"width": "100px"},
+            clearable= False
+        ),
+        
+
+        html.Div(
+            id="sport-selector", 
+            style={"display": "none"}, 
+            children=[
+                html.Label("Choose a sport:"),
+                dcc.Dropdown(
+                    id="sport-picker", 
+                    options=[{"label": sport, "value": sport} for sport in sports], 
+                    value="Swimming",
+                    clearable= False
+                ),
+                html.Label("Choose a filter:"),
+                dcc.Dropdown(
+                    id="filter-sport", 
+                    options=[{"label": key, "value": value} for key, value in sport_filters.items()], 
+                    value="Age",
+                    clearable= False
+                )
+            ]
+        ),
+        
+
+        html.Div(
+            id="italy-selecter", 
+            children=[
+                html.Label("Select filter:", style={"width": "250px", "display": "inline-block"}), 
+              dcc.Dropdown(
+                    id="italy-medals", 
+                    options=[{"label": key, "value": value} for key, value in ita_filters.items()], 
+                    value="Year",
+                    style={"width": "250px"},
+                    clearable= False
+                ),
+                html.Label("Medals:"), 
+                dcc.Dropdown(
+                    id="season-medals", 
+                    options=[
+                        {"label": "All Olympics", "value": "Total"},
+                        {"label": "Summer Olympics", "value": "Summer"},
+                        {"label": "Winter", "value": "Winter"}
+                    ],
+                    value="",
+                    style={"width": "160px"}
+                )
+            ]
+        )
     ]),
-    html.Div(id ="italy-selecter", children=[
-            html.Label("Select filter:"), 
-            dcc.RadioItems(id="italy-medals", 
-                           options=[{"label": key, "value": value} for key, value in ita_filters.items()], 
-                           value="Year")
-    ]),
-    dcc.Graph(id="graph1"),
-    dcc.Graph(id="graph2"),
-    dcc.Graph(id="graph3")
+
+
+    html.H4(),
+    dcc.Graph(id="graph")
 ])
 
 
@@ -136,28 +169,6 @@ def avreges(pick, filter, count_in):
 
     return avg_medals
 
-@app.callback(
-     Output("graph3", "figure"),
-     Input("sport-picker", "value")
-     )
-  
-def gender_distr_sport(sport):
-    
-    df = medal_counter(pick="Sport", filter=sport, count_in="Sex")
-    
-    df['Sex'] = df['Sex'].map({'M':'Male', 'F':'Female'})
-    fig3 = px.bar(df, x='Sex', 
-                  y= ["Gold medals", "Silver medals", "Bronze medals"], 
-                  barmode='stack', 
-                  title=f"Medal Distribution by gender in {sport}",
-                  color_discrete_map={
-                      "Gold medals": "gold",
-                      "Silver medlas": "silver", 
-                      "Bronze medlas": "chocolate-colored"
-                  })
-    return fig3
-
-    
 
 def medal_counter(pick, filter, count_in):
     """Counts the medals from picked country or sport from
