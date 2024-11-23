@@ -87,7 +87,11 @@ app.layout = html.Div([
                     style={"width": "250px"},
                     clearable= False
                 ),
-                html.Label("Medals:"), 
+            ]),
+        html.Div(
+            id="season-medals-container",
+            children=[
+                html.Label("Medals:"),
                 dcc.Dropdown(
                     id="season-medals", 
                     options=[
@@ -98,7 +102,7 @@ app.layout = html.Div([
                     value="",
                     style={"width": "160px"}
                 )
-            ]
+            ], style={"display": "none"}
         )
     ]),
 
@@ -109,16 +113,26 @@ app.layout = html.Div([
 
 
 @app.callback(
+        [
         Output("sport-selector", "style"),
         Output("italy-selecter", "style"),
-        Input("ita-or-sports", "value")
+        Output("season-medals-container", "style"),
+        ],
+        [
+        Input("ita-or-sports", "value"),
+        Input("italy-medals", "value")
+        ]
 )
 
-def sport_picker_show(selected_sport):
-    if selected_sport == "Sports":
-        return{"display": "block"}, {"display": "none"}
-    if selected_sport == "Italy":
-        return{"display": "none"}, {"display": "block"}
+def show_or_hide (selection1, selection2):
+    if selection1 == "Sports":
+        return {"display": "block"}, {"display": "none"}, {"display": "none"}
+    elif selection1 == "Italy":
+        if selection2 == "Year":
+            return{"display": "none"}, {"display": "block"}, {"display": "block"}
+        else:
+            return{"display": "none"}, {"display": "block"}, {"display": "none"}
+    
 
 
 @app.callback(
