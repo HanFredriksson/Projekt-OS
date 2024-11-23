@@ -61,6 +61,13 @@ app.layout = html.Div([
             ]
         ),
         
+        html.Div([
+            html.H4("Medal Distribution by gender for selected sport"),
+            dcc.Graph(id="gender-distribution-graph")],
+                 id= "gender-distribution-container", style={"display": "none"}),
+            
+
+        
 
         html.Div(
             id="italy-selecter", 
@@ -109,6 +116,8 @@ def sport_picker_show(selected_sport):
 
 @app.callback(
     Output("graph", "figure"),
+    Output("gender-distribution-graph", "figure"),
+    Output("gender-distribution-container", "style"),
     [
     Input("ita-or-sports", "value"),
     Input("sport-picker", "value"),
@@ -123,10 +132,14 @@ def show_graf(cat, sport, sport_filter, italy_filter, os_season):
     peram cat: the span of the data
     peram graf: type of graf "bar", "line", "histo"
     """
+    fig = go.Figure()
+    gender_fig = go.Figure()
+    gender_style = {"display": "none"}
     if cat == "Sports":
          df = medal_counter("Sport", sport, sport_filter)
          fig = px.histogram(df, x=df.index, y= "Total")
-      
+         gender_fig = gender_distr_sport(sport)
+         gender_style = {"display": "block"}
     elif cat == "Italy":
         df = medal_counter("NOC", "ITA", italy_filter)
         if os_season != "":
@@ -151,7 +164,7 @@ def show_graf(cat, sport, sport_filter, italy_filter, os_season):
 
         else:
              fig = px.bar(df, x=df.index, y= "Total")
-    return fig
+    return fig, gender_fig, gender_style
    
 
   
@@ -169,6 +182,24 @@ def avreges(pick, filter, count_in):
 
     return avg_medals
 
+
+def gender_distr_sport(sport):
+    
+    df = medal_counter(pick="NOC", filter="ITA", count_in="Sex")
+    df = df[df.index == sport]
+    df['Sex'] = df['Sex'].map({'M':'Male', 'F':'Female'})
+    fig3 = px.bar(df, x='Sex', 
+                  y= ["Gold medals", "Silver medals", "Bronze medals"], 
+                  barmode='stack', 
+                  title=f"Medal Distribution by gender in {sport}",
+                  color_discrete_map={
+                      "Gold medals": "gold",
+                      "Silver medlas": "silver", 
+                      "Bronze medlas": "chocolate"
+                  })
+    return fig3
+
+    
 
 def medal_counter(pick, filter, count_in):
     """Counts the medals from picked country or sport from
