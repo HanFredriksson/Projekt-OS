@@ -4,13 +4,14 @@ import pandas as pd
 import plotly.express as px 
 from dash import dcc, html, Output, Input
 import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 
 
 
 os_data = OsDataFetcher("../Projekt-OS/Data/athlete_events.csv", "Name")
 
 picker = {"Italy": "Italy", "Sports": "Sports"}
-medals = {"Gold":"", "Silver": "Silver", "Bronze": "Bronze", "Total": "Total"}
+medals = {"Gold":"Gold", "Silver": "Silver", "Bronze": "Bronze", "Total": "Total"}
 
 ita_filters = {"Total medals over the years": "Year", 
                "Total medals per sport": "Sport", 
@@ -27,34 +28,73 @@ app = dash.Dash(__name__)
 
 app.layout = html.Div([
     html.H1("OS Data Analyser"),
-    html.Div([
-        html.Label("What catogory too look into:"),
-        dcc.RadioItems(id="ita-or-sports", options=picker, value="Italy")
-    ]),
-    html.Div(
-        id = "sport-selector", 
-        style = {"display": "none"},
-        children=[
-            html.Label("Choose a sport:"),
-            dcc.RadioItems(id="sport-picker", 
-                           options=[{"label": sport, "value": sport} for sport in sports], 
-                           value="Swimming"),
+    
 
-            html.Label("Choose a filter:"),
-            dcc.RadioItems(id="filter-sport", 
-                           options=[{"label": key, "value": value} for key, value in sport_filters.items()], 
-                           value="Age"),
-                           
+    html.Div([
+
+        html.Label("What category to look into:", style={"width": "200px", "display": "inline-block"}),
+        dcc.Dropdown(
+            id="ita-or-sports", 
+            options=[{"label": k, "value": v} for k, v in picker.items()], 
+            value="Italy",
+            style={"width": "100px"},
+            clearable= False
+        ),
+        
+
+        html.Div(
+            id="sport-selector", 
+            style={"display": "none"}, 
+            children=[
+                html.Label("Choose a sport:"),
+                dcc.Dropdown(
+                    id="sport-picker", 
+                    options=[{"label": sport, "value": sport} for sport in sports], 
+                    value="Swimming",
+                    clearable= False
+                ),
+                html.Label("Choose a filter:"),
+                dcc.Dropdown(
+                    id="filter-sport", 
+                    options=[{"label": key, "value": value} for key, value in sport_filters.items()], 
+                    value="Age",
+                    clearable= False
+                )
+            ]
+        ),
+        
+
+        html.Div(
+            id="italy-selecter", 
+            children=[
+                html.Label("Select filter:", style={"width": "250px", "display": "inline-block"}), 
+              dcc.Dropdown(
+                    id="italy-medals", 
+                    options=[{"label": key, "value": value} for key, value in ita_filters.items()], 
+                    value="Year",
+                    style={"width": "250px"},
+                    clearable= False
+                ),
+                html.Label("Medals:"), 
+                dcc.Dropdown(
+                    id="season-medals", 
+                    options=[
+                        {"label": "All Olympics", "value": "Total"},
+                        {"label": "Summer Olympics", "value": "Summer"},
+                        {"label": "Winter", "value": "Winter"}
+                    ],
+                    value="",
+                    style={"width": "160px"}
+                )
+            ]
+        )
     ]),
-    html.Div(id ="italy-selecter", children=[
-            html.Label("Select filter:"), 
-            dcc.RadioItems(id="italy-medals", 
-                           options=[{"label": key, "value": value} for key, value in ita_filters.items()], 
-                           value="Year")
-    ]),
-    dcc.Graph(id="graph1"),
-    dcc.Graph(id="graph2")
+
+
+    html.H4(),
+    dcc.Graph(id="graph")
 ])
+
 
 @app.callback(
         Output("sport-selector", "style"),
@@ -70,34 +110,52 @@ def sport_picker_show(selected_sport):
 
 
 @app.callback(
-    [
-    Output("graph1", "figure"),
-    Output("graph2", "figure")
-    ],
+    Output("graph", "figure"),
     [
     Input("ita-or-sports", "value"),
     Input("sport-picker", "value"),
     Input("filter-sport", "value"),
-    Input("italy-medals", "value")
+    Input("italy-medals", "value"),
+    Input("season-medals", "value")
     ]
 )
-def show_graf(cat, sport, sport_filter, italy_filter):
+def show_graf(cat, sport, sport_filter, italy_filter, os_season):
     """
     param data: data frame to plot
     peram cat: the span of the data
     peram graf: type of graf "bar", "line", "histo"
     """
     if cat == "Sports":
-        df = medal_counter("Sport", sport, sport_filter)
-        fig1 = px.histogram(df, x=df.index, y= "Total")
-        return fig1, {}
+         df = medal_counter("Sport", sport, sport_filter)
+         fig = px.histogram(df, x=df.index, y= "Total")
       
     elif cat == "Italy":
         df = medal_counter("NOC", "ITA", italy_filter)
-        fig1 = px.bar(df, x=df.index, y= "Total")
-        fig2 = px.bar(df, x=df.index, y= "Gold medals")
-        return fig1, fig2
-    # kolla på subplots
+        if os_season != "":
+            fig = make_subplots(rows=2, cols=2, subplot_titles=["Total Medals", "Gold Medals"])
+            fig.add_trace(
+                go.Bar(x=df.index ,y=df["Total"], name="Total Medals"),
+                row=1, col=1
+            )
+            fig.add_trace(
+                go.Bar(x=df.index, y= df["Gold medals"], name="Gold Medals"),
+                row=1, col=2
+            )
+            fig.add_trace(
+                go.Bar(x=df.index, y=df["Silver medals"], name="Silver Medals"),
+                row=2, col=1
+            )
+            fig.add_trace(
+                go.Bar(x=df.index, y=df["Bronze medals"], name="Bronze Medals"),
+                row=2, col=2
+            )
+            fig.update_layout(title_text="Italy Medals Analysis")
+
+        else:
+             fig = px.bar(df, x=df.index, y= "Total")
+    return fig
+   
+
   
 
 
