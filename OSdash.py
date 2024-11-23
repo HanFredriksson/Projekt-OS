@@ -191,8 +191,10 @@ def show_graf(cat, sport, sport_filter, italy_filter, os_season):
             )
             fig.update_layout(title_text=f"Medels for {graf_titel_names[os_season]}")
         
+        if italy_filter == "Sex":
+            fig = px.bar(df, x=df.index, y= "Total", color="Sex")
         else:
-             fig = px.bar(df, x=df.index, y= "Total")
+             fig = px.bar(df, x=df.index, y= "Total",)
     
     return fig, gender_fig, gender_style
    
