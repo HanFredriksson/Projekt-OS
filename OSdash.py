@@ -2,95 +2,117 @@ from FetchOSData import OsDataFetcher
 import dash
 import pandas as pd
 import plotly.express as px 
-from dash import html, dcc
-from dash.dependencies import Output, Input
-# The variabels we need
+from dash import dcc, html, Output, Input
+import plotly.graph_objects as go
+
+
+
 os_data = OsDataFetcher("../Projekt-OS/Data/athlete_events.csv", "Name")
-sports = ["Swimming", "Alpine Skiing", "Rowing", "Cross Country Skiing"]
-sex = {"Female": "F", "Male": "M"}
-medals = ["Gold", "Silver", "Bronze"]
+
+picker = {"Italy": "Italy", "Sports": "Sports"}
+medals = {"Gold":"", "Silver": "Silver", "Bronze": "Bronze", "Total": "Total"}
+
+ita_filters = {"Total medals over the years": "Year", 
+               "Total medals per sport": "Sport", 
+               "Medals per Olympics": "City",
+               "Medals for each gender per sport": "Sex"}
+
+sport_filters ={"Age spread": "Age",
+                "Medal spread per country": "NOC",
+                "Gender spread": "Sex"}
+
+sports = {"Swimming":"Swimming", "Alpine Skiing":"Alpine Skiing", "Rowing": "Rowing", "Cross Country Skiing": "Cross Country Skiing"}
 
 app = dash.Dash(__name__)
-# Dicts with key for what we want to filter for showing in the graphs.
-# Keys get picked from a meny in dashboard
-# Do we need to move the filter function from the class?
-# Or filter funktion of the class is a general filter making smaller dataframes, like one for each sport
-# 
 
 app.layout = html.Div([
-    html.H1("OS Italy Data", style= {'background': 'gold', 'text-align': 'center'}), 
-    html.Label("Choose a Type Of Visualization"),
-    dcc.Dropdown(
-        id = 'Visualization-type',
-        options=[
-            {'label': 'Calculation Avrage', 'value': 'calc_averge'},
-            {'label': 'Medals Per Year', 'value': 'medals_per_year'},
-            {'label': 'The Most Medals By Sport', 'value': 'most_medals_per_sport'},
-            {'label': 'Medals Per OS', 'value': 'medals_per_os'},
-            {'label': 'Gender Distribution by Sport', 'value': 'gender_distribution_sport'},
-            {'label': 'Age Spread in the Sport', 'value': 'age_spread_in_the_sports'},
-            
-            ],
-        placeholder="Select a visualization"
-       
-    ),
-    dcc.Graph()
+    html.H1("OS Data Analyser"),
+    html.Div([
+        html.Label("What catogory too look into:"),
+        dcc.RadioItems(id="ita-or-sports", options=picker, value="Italy")
+    ]),
+    html.Div(
+        id = "sport-selector", 
+        style = {"display": "none"},
+        children=[
+            html.Label("Choose a sport:"),
+            dcc.RadioItems(id="sport-picker", 
+                           options=[{"label": sport, "value": sport} for sport in sports], 
+                           value="Swimming"),
+
+            html.Label("Choose a filter:"),
+            dcc.RadioItems(id="filter-sport", 
+                           options=[{"label": key, "value": value} for key, value in sport_filters.items()], 
+                           value="Age"),
+                           
+    ]),
+    html.Div(id ="italy-selecter", children=[
+            html.Label("Select filter:"), 
+            dcc.RadioItems(id="italy-medals", 
+                           options=[{"label": key, "value": value} for key, value in ita_filters.items()], 
+                           value="Year")
+    ]),
+    dcc.Graph(id="graph1"),
+    dcc.Graph(id="graph2")
 ])
 
+@app.callback(
+        Output("sport-selector", "style"),
+        Output("italy-selecter", "style"),
+        Input("ita-or-sports", "value")
+)
+
+def sport_picker_show(selected_sport):
+    if selected_sport == "Sports":
+        return{"display": "block"}, {"display": "none"}
+    if selected_sport == "Italy":
+        return{"display": "none"}, {"display": "block"}
 
 
-def show_graf(data, cat, graf):
+@app.callback(
+    [
+    Output("graph1", "figure"),
+    Output("graph2", "figure")
+    ],
+    [
+    Input("ita-or-sports", "value"),
+    Input("sport-picker", "value"),
+    Input("filter-sport", "value"),
+    Input("italy-medals", "value")
+    ]
+)
+def show_graf(cat, sport, sport_filter, italy_filter):
     """
     param data: data frame to plot
     peram cat: the span of the data
     peram graf: type of graf "bar", "line", "histo"
     """
+    if cat == "Sports":
+        df = medal_counter("Sport", sport, sport_filter)
+        fig1 = px.histogram(df, x=df.index, y= "Total")
+        return fig1, {}
+      
+    elif cat == "Italy":
+        df = medal_counter("NOC", "ITA", italy_filter)
+        fig1 = px.bar(df, x=df.index, y= "Total")
+        fig2 = px.bar(df, x=df.index, y= "Gold medals")
+        return fig1, fig2
+    # kolla på subplots
+  
+
+
+def avreges(pick, filter, count_in):
     
-    if graf == "bar":
-        fig = px.bar(data, x=data.index, y= cat, barmode= "stack")
-    if graf == "line":
-        fig = px.line(data, x=data.index, y= cat)
-    if graf == "histo":
-        fig = px.histogram(data, x=data.index, y= cat, nbins = 14)
-    return fig
+    medal_data = medal_counter(pick, filter, count_in)
 
+    avg_medals = (
+        medal_data.groupby(medal_data.index)["Total"].mean()
+        .reset_index()
+        .rename(columns={"Total": "Average Medals"})
+    )
 
-def calc_averge():
-    # Calculate on averag how many medals in each denomination each genader has gotten
-    pass
+    return avg_medals
 
-# Data to visualize for italy 
-def medals_per_year():
-    # How succsesfull italy has been over the years
-    # Possibley show by medal typ and/or winter or summer olympices
-    pass
-
-def most_medals_per_sport():
-    # How many medals through out the year have Italy taken in
-    # Possibley see wich medal type
-    pass
-
-def number_of_medals_per_os():
-    # Show how the medals where spread over the diffrent Olympices
-    pass
-
-def gender_distrbution_sport():
-    # Comparing an average over won medals devided in medal denomination
-    pass
-
-
-# Sports stats data to visualize for 2-4 sports: Swimming, Alpine Skiing, Rowing, Cross Country Skiing
-def age_spread_in_the_sports():
-    # Show how the medals spread over the ages in the sport
-    pass
-
-def medal_spread_for_countries_in_sport():
-    # Show how the medals spread over the countries in the sport
-    pass
-
-def gender_distrbution_sports():
-    # Comparing an over won medals up in medal denomination
-    pass
 
 def medal_counter(pick, filter, count_in):
     """Counts the medals from picked country or sport from
@@ -105,16 +127,24 @@ def medal_counter(pick, filter, count_in):
     """
     dff = os_data.os_filtered_dataframe(pick, filter)
 
+    if count_in == "Sex":
+        count_in = ["Sport", "Sex"]
+
     gold_medal = dff[dff["Medal"] == "Gold"].groupby(count_in).size()
     silver_medal = dff[dff["Medal"] == "Silver"].groupby(count_in).size()
     bronze_medal = dff[dff["Medal"] == "Bronze"].groupby(count_in).size()
 
     medal_count = pd.DataFrame({"Gold medals": gold_medal,
                                 "Silver medals": silver_medal,
-                                "Bronze Medals": bronze_medal,
-                                "Total": gold_medal + silver_medal + bronze_medal
-                                }).fillna(0).astype(int)
-
+                                "Bronze medals": bronze_medal,
+                                }).fillna(0).astype(int).reindex()
+    
+    medal_count["Total"] = medal_count["Gold medals"] + medal_count["Silver medals"] + medal_count["Bronze medals"]
+    
+    if count_in == ["Sport", "Sex"]:
+        medal_count.reset_index(inplace=True)
+        medal_count.set_index("Sport", inplace= True)
+    
     return medal_count
 
 
