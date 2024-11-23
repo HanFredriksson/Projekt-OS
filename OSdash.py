@@ -53,7 +53,8 @@ app.layout = html.Div([
                            value="Year")
     ]),
     dcc.Graph(id="graph1"),
-    dcc.Graph(id="graph2")
+    dcc.Graph(id="graph2"),
+    dcc.Graph(id="graph3")
 ])
 
 @app.callback(
@@ -113,6 +114,28 @@ def avreges(pick, filter, count_in):
 
     return avg_medals
 
+@app.callback(
+     Output("graph3", "figure"),
+     Input("sport-picker", "value")
+     )
+  
+def gender_distr_sport(sport):
+    
+    df = medal_counter(pick="Sport", filter=sport, count_in="Sex")
+    
+    df['Sex'] = df['Sex'].map({'M':'Male', 'F':'Female'})
+    fig3 = px.bar(df, x='Sex', 
+                  y= ["Gold medals", "Silver medals", "Bronze medals"], 
+                  barmode='stack', 
+                  title=f"Medal Distribution by gender in {sport}",
+                  color_discrete_map={
+                      "Gold medals": "gold",
+                      "Silver medlas": "silver", 
+                      "Bronze medlas": "chocolate-colored"
+                  })
+    return fig3
+
+    
 
 def medal_counter(pick, filter, count_in):
     """Counts the medals from picked country or sport from
