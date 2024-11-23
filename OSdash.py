@@ -22,7 +22,14 @@ sport_filters ={"Age spread": "Age",
                 "Medal spread per country": "NOC",
                 "Gender spread": "Sex"}
 
-sports = {"Swimming":"Swimming", "Alpine Skiing":"Alpine Skiing", "Rowing": "Rowing", "Cross Country Skiing": "Cross Country Skiing"}
+graf_titel_names = {"Year": "All Olympics",
+                    "Summer": "Summer Olympics",
+                    "Winter": "Winter Olympics"}
+
+sports = {"Swimming":"Swimming", 
+          "Alpine Skiing":"Alpine Skiing", 
+          "Rowing": "Rowing", 
+          "Cross Country Skiing": "Cross Country Skiing"}
 
 app = dash.Dash(__name__)
 
@@ -77,7 +84,7 @@ app.layout = html.Div([
                 dcc.Dropdown(
                     id="season-medals", 
                     options=[
-                        {"label": "All Olympics", "value": "Total"},
+                        {"label": "All Olympics", "value": "Year"},
                         {"label": "Summer Olympics", "value": "Summer"},
                         {"label": "Winter", "value": "Winter"}
                     ],
@@ -129,8 +136,13 @@ def show_graf(cat, sport, sport_filter, italy_filter, os_season):
       
     elif cat == "Italy":
         df = medal_counter("NOC", "ITA", italy_filter)
-        if os_season != "":
-            fig = make_subplots(rows=2, cols=2, subplot_titles=["Total Medals", "Gold Medals"])
+        
+        if os_season == "Winter" or os_season == "Summer":
+            df = medal_counter("NOC", "ITA", ["Season", "Year"])
+       
+        if os_season:
+            fig = make_subplots(rows=2, cols=2, subplot_titles=["Total Medals", "Gold Medals", "Silver Medals", "Bronze Medals"])
+            
             fig.add_trace(
                 go.Bar(x=df.index ,y=df["Total"], name="Total Medals"),
                 row=1, col=1
@@ -147,10 +159,9 @@ def show_graf(cat, sport, sport_filter, italy_filter, os_season):
                 go.Bar(x=df.index, y=df["Bronze medals"], name="Bronze Medals"),
                 row=2, col=2
             )
-            fig.update_layout(title_text="Italy Medals Analysis")
-
+            fig.update_layout(title_text=f"Medels for {graf_titel_names[os_season]}")
         else:
-             fig = px.bar(df, x=df.index, y= "Total")
+            fig = px.bar(df, x=df.index, y= "Total")
     return fig
    
 
@@ -183,9 +194,7 @@ def medal_counter(pick, filter, count_in):
     """
     dff = os_data.os_filtered_dataframe(pick, filter)
 
-    if count_in == "Sex":
-        count_in = ["Sport", "Sex"]
-
+    
     gold_medal = dff[dff["Medal"] == "Gold"].groupby(count_in).size()
     silver_medal = dff[dff["Medal"] == "Silver"].groupby(count_in).size()
     bronze_medal = dff[dff["Medal"] == "Bronze"].groupby(count_in).size()
@@ -197,9 +206,9 @@ def medal_counter(pick, filter, count_in):
     
     medal_count["Total"] = medal_count["Gold medals"] + medal_count["Silver medals"] + medal_count["Bronze medals"]
     
-    if count_in == ["Sport", "Sex"]:
+    if len(count_in) == 2:
         medal_count.reset_index(inplace=True)
-        medal_count.set_index("Sport", inplace= True)
+        medal_count.set_index(count_in[0], inplace= True)
     
     return medal_count
 
