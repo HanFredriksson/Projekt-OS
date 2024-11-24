@@ -11,7 +11,7 @@ from plotly.subplots import make_subplots
 os_data = OsDataFetcher("../Projekt-OS/Data/athlete_events.csv", "Name")
 
 picker = {"Italy": "Italy", "Sports": "Sports"}
-medals = {"Gold":"Gold", "Silver": "Silver", "Bronze": "Bronze", "Total": "Total"}
+medals = [ "Gold Medals", "Silver Medals", "Bronze Medals"]
 
 ita_filters = {"Total medals over the years": "Year", 
                "Total medals per sport": "Sport", 
@@ -32,6 +32,17 @@ sports = {"Swimming":"Swimming",
           "Rowing": "Rowing", 
           "Cross Country Skiing": "Cross Country Skiing"}
 
+color_map = {"Gold medals":"gold",
+            "Silver medals":"silver",
+            "Bronze medals":"chocolate",
+            "Average Medals": "deepskyblue",
+            "Averages_sex" : "Sex",
+            "Year": "Total",
+            "Sport": "Total",
+            "City": "Total",
+            "Sex" : "Sex"
+            } 
+
 app = dash.Dash(__name__)
 
 app.layout = html.Div([
@@ -43,7 +54,7 @@ app.layout = html.Div([
             id="ita-or-sports", 
             options=[{"label": k, "value": v} for k, v in picker.items()], 
             value="Italy",
-            style={"width": "100px"},
+            style={"width": "100px", "margin-bottom": "10px"},
             clearable= False
         ),
         
@@ -57,6 +68,7 @@ app.layout = html.Div([
                     id="sport-picker", 
                     options=[{"label": sport, "value": sport} for sport in sports], 
                     value="Swimming",
+                    style={"width": "180px", "margin-bottom": "10px"},
                     clearable= False
                 ),
                 html.Label("Choose a filter:"),
@@ -64,13 +76,12 @@ app.layout = html.Div([
                     id="filter-sport", 
                     options=[{"label": key, "value": value} for key, value in sport_filters.items()], 
                     value="Age",
+                    style={"width": "250px"},
                     clearable= False
                 )
             ]
         ),
       
-
-        
 
         html.Div(
             id="italy-selecter", 
@@ -80,10 +91,24 @@ app.layout = html.Div([
                     id="italy-medals", 
                     options=[{"label": key, "value": value} for key, value in ita_filters.items()], 
                     value="Year",
-                    style={"width": "250px"},
+                    style={"width": "250px", "margin-bottom": "10px"},
                     clearable= False
                 ),
-            ]),
+                html.Label("Medals per gender:",
+                style={"display": "none"}),
+                dcc.RadioItems(
+                    id="gender-medals",
+                    options=[
+                        {"label": "Total Medals", "value": "Total"},
+                        {"label": "Average Medals", "value": "Averages_sex"},
+                    ],
+                    value="Total",
+                    
+                )
+            ]
+            ),
+
+
         html.Div(
             id="season-medals-container",
             children=[
@@ -98,7 +123,7 @@ app.layout = html.Div([
                     value="",
                     style={"width": "160px"}
                 )
-            ], style={"display": "none"}
+            ]
         )
     ]),
 
@@ -109,25 +134,33 @@ app.layout = html.Div([
 
 
 @app.callback(
-        [
+    [
         Output("sport-selector", "style"),
         Output("italy-selecter", "style"),
+        Output("gender-medals", "style"),
         Output("season-medals-container", "style"),
-        ],
-        [
+    ],
+    [
         Input("ita-or-sports", "value"),
         Input("italy-medals", "value")
-        ]
+    ]
 )
-
-def show_or_hide (selection1, selection2):
+def show_or_hide(selection1, selection2):
     if selection1 == "Sports":
-        return {"display": "block"}, {"display": "none"}, {"display": "none"}
+        # Visa sportval, göm alla andra
+        return {"display": "block"}, {"display": "none"}, {"display": "none"}, {"display": "none"}
+    
     elif selection1 == "Italy":
-        if selection2 == "Year":
-            return{"display": "none"}, {"display": "block"}, {"display": "block"}
+        # Kontrollera vilket filter som valts i italy-medals
+        if selection2 == "Sex":
+            # Visa Average Medals
+            return {"display": "none"}, {"display": "block"}, {"display": "block"}, {"display": "none"}
+        elif selection2 == "Year":
+            # Visa Medals-dropdown
+            return {"display": "none"}, {"display": "block"}, {"display": "none"}, {"display": "block"}
         else:
-            return{"display": "none"}, {"display": "block"}, {"display": "none"}
+            # Standard: Visa bara Italy-selecter
+            return {"display": "none"}, {"display": "block"}, {"display": "none"}, {"display": "none"}
     
 
 
@@ -138,10 +171,11 @@ def show_or_hide (selection1, selection2):
     Input("sport-picker", "value"),
     Input("filter-sport", "value"),
     Input("italy-medals", "value"),
-    Input("season-medals", "value")
+    Input("season-medals", "value"),
+    Input("gender-medals", "value")
     ]
 )
-def show_graf(cat, sport, sport_filter, italy_filter, os_season):
+def show_graf(cat, sport, sport_filter, italy_filter, os_season, gender_medals):
     """
     param data: data frame to plot
     peram cat: the span of the data
@@ -196,26 +230,29 @@ def show_graf(cat, sport, sport_filter, italy_filter, os_season):
             )
             fig.update_layout(title_text=f"Medels for {graf_titel_names[os_season]}")
         
-        if italy_filter == "Sex":
-            fig = px.bar(df, x=df.index, y= "Total", color="Sex")
+        elif gender_medals == "Averages_sex":
+            df = averages(df, italy_filter)
+            fig = px.bar(df, x="Sex", 
+                         y= df.columns, 
+                         barmode="group", 
+                         color_discrete_map = color_map)
         else:
-             fig = px.bar(df, x=df.index, y= "Total",)
-    
+             fig = px.bar(df, x=df.index, y= "Total", color=color_map[italy_filter])
     return fig
    
 
   
 
 
-def avreges(pick, filter, count_in):
+def averages(data, index):
     
-    medal_data = medal_counter(pick, filter, count_in)
-
     avg_medals = (
-        medal_data.groupby(medal_data.index)["Total"].mean()
-        .reset_index()
-        .rename(columns={"Total": "Average Medals"})
+    data.groupby(index)[["Gold medals", "Silver medals", "Bronze medals", "Total"]].mean()
+    .reset_index()
+    .rename(columns={"Total": "Average Medals"}) 
     )
+    move_column = avg_medals.pop("Average Medals")
+    avg_medals.insert(0, "Average Medals", move_column)
 
     return avg_medals
 
