@@ -20,7 +20,8 @@ ita_filters = {"Total medals over the years": "Year",
 
 sport_filters ={"Age spread": "Age",
                 "Medal spread per country": "NOC",
-                "Gender spread": "Sex"}
+                "Gender spread": "Sex",
+                "Medal distribution by gender for each sport":"genderpersport"}
 
 graf_titel_names = {"Year": "All Olympics",
                     "Summer": "Summer Olympics",
@@ -67,12 +68,7 @@ app.layout = html.Div([
                 )
             ]
         ),
-        
-        html.Div([
-            html.H4("Medal Distribution by gender for selected sport"),
-            dcc.Graph(id="gender-distribution-graph")],
-                 id= "gender-distribution-container", style={"display": "none"}),
-            
+      
 
         
 
@@ -137,8 +133,6 @@ def show_or_hide (selection1, selection2):
 
 @app.callback(
     Output("graph", "figure"),
-    Output("gender-distribution-graph", "figure"),
-    Output("gender-distribution-container", "style"),
     [
     Input("ita-or-sports", "value"),
     Input("sport-picker", "value"),
@@ -153,17 +147,27 @@ def show_graf(cat, sport, sport_filter, italy_filter, os_season):
     peram cat: the span of the data
     peram graf: type of graf "bar", "line", "histo"
     """
-    gender_fig = gender_distr_sport(sport)
-    fig = go.Figure()
-    gender_fig = go.Figure()
-    gender_style = {"display": "none"}
-   
     if cat == "Sports":
-        df = medal_counter("Sport", sport, sport_filter)
-        fig = px.histogram(df, x=df.index, y= "Total")
-        gender_fig = gender_distr_sport(sport)
-        gender_style = {"display": "block"}
-    
+        
+        
+        if sport_filter == "genderpersport": 
+            df= medal_counter("Sport", sport, "Sex")
+            df.reset_index(inplace=True)
+            fig= px.bar(df, x= "Sex", y =["Gold medals", "Silver medals", "Bronze medals"],
+            barmode="stack", title=f"Medals for each gendr in {sport}",
+            color_discrete_map={
+            "Gold medals":"gold",
+            "Silver medals":"silver",
+            "Bronze medals":"chocolate"
+            })
+        else:
+          df = medal_counter("Sport", sport, sport_filter)
+          fig = px.histogram(df, x=df.index, y= "Total")
+        
+    if sport_filter == "Sex":
+        fig = px.bar(df, x= df.index,y= "Total", color="Sex", barmode="group")
+            
+     
     elif cat == "Italy":
         df = medal_counter("NOC", "ITA", italy_filter)
         
@@ -196,7 +200,7 @@ def show_graf(cat, sport, sport_filter, italy_filter, os_season):
         else:
              fig = px.bar(df, x=df.index, y= "Total",)
     
-    return fig, gender_fig, gender_style
+    return fig
    
 
   
@@ -214,22 +218,6 @@ def avreges(pick, filter, count_in):
 
     return avg_medals
 
-
-def gender_distr_sport(sport):
-    
-    df = medal_counter(pick="NOC", filter="ITA", count_in="Sex")
-    df = df[df.index == sport]
-    df['Sex'] = df['Sex'].map({'M':'Male', 'F':'Female'})
-    fig3 = px.bar(df, x='Sex', 
-                  y= ["Gold medals", "Silver medals", "Bronze medals"], 
-                  barmode='stack', 
-                  title=f"Medal Distribution by gender in {sport}",
-                  color_discrete_map={
-                      "Gold medals": "gold",
-                      "Silver medlas": "silver", 
-                      "Bronze medlas": "chocolate"
-                  })
-    return fig3
 
     
 
