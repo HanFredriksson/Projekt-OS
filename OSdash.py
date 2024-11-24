@@ -46,7 +46,7 @@ color_map = {"Gold medals":"gold",
 app = dash.Dash(__name__)
 
 app.layout = html.Div([
-    html.H1("OS Data Analyser"),
+    html.H1("OS Data Analyser",style={'textAlign':'center'}),
     html.Div([
 
         html.Label("What category to look into:", style={"width": "200px", "display": "inline-block"}),
@@ -130,7 +130,13 @@ app.layout = html.Div([
 
     html.H4(),
     dcc.Graph(id="graph")
-])
+],
+                      style={'background-image':'url("/assets/os.jpg")',
+                             'background-size': 'cover', 
+                             'position':'fixed',
+                             'width':'100%',
+                             'height':'100%'
+                             })
 
 
 @app.callback(
@@ -202,6 +208,11 @@ def show_graf(cat, sport, sport_filter, italy_filter, os_season, gender_medals):
         
         if sport_filter == "Sex":
          fig = px.bar(df, x= df.index,y= "Total", color="Sex", barmode="group")
+         
+        fig.update_layout(
+            paper_bgcolor='rgb(255,255,255,0)', 
+            plot_bgcolor='rgb(255,255,255,0.9)')
+    
             
      
     elif cat == "Italy":
