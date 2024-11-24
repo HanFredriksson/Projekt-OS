@@ -173,10 +173,6 @@ def show_graf(cat, sport, sport_filter, italy_filter, os_season):
         
         if sport_filter == "Sex":
          fig = px.bar(df, x= df.index,y= "Total", color="Sex", barmode="group")
-         
-        fig.update_layout(
-            paper_bgcolor='rgb(255,255,255,0)', 
-            plot_bgcolor='rgb(255,255,255,0.9)')
     
             
      
@@ -212,9 +208,11 @@ def show_graf(cat, sport, sport_filter, italy_filter, os_season):
         else:
              fig = px.bar(df, x=df.index, y= "Total",)
         
-        fig.update_layout(
-            paper_bgcolor='rgb(255,255,255,0)', 
-            plot_bgcolor='rgb(255,255,255,0.9)')
+    fig.update_layout(
+        paper_bgcolor='rgb(255,255,255,0)', 
+        plot_bgcolor='rgb(255,255,255,0.9)')
+    fig.update_xaxes(title_font={"color": "rgb(0,0,0,0)"}, tickfont={"color": "black"}) # source chatgpt
+    fig.update_yaxes(title_font={"color": "black"}, tickfont={"color": "black"}) # source chatgpt
     
     return fig
    
