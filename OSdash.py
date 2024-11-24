@@ -209,10 +209,6 @@ def show_graf(cat, sport, sport_filter, italy_filter, os_season, gender_medals):
         
         if sport_filter == "Sex":
          fig = px.bar(df, x= df.index,y= "Total", color="Sex", barmode="group")
-         
-        fig.update_layout(
-            paper_bgcolor='rgb(255,255,255,0)', 
-            plot_bgcolor='rgb(255,255,255,0.9)')
     
             
      
