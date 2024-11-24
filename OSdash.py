@@ -25,7 +25,8 @@ sport_filters ={"Age spread": "Age",
 
 graf_titel_names = {"Year": "All Olympics",
                     "Summer": "Summer Olympics",
-                    "Winter": "Winter Olympics"}
+                    "Winter": "Winter Olympics",
+                    }
 
 sports = {"Swimming":"Swimming", 
           "Alpine Skiing":"Alpine Skiing", 
@@ -222,7 +223,10 @@ def show_graf(cat, sport, sport_filter, italy_filter, os_season, gender_medals):
             df = medal_counter("NOC", "ITA", ["Season", "Year"])
             df = df.loc[os_season]
         if os_season:
-            fig = make_subplots(rows=2, cols=2, subplot_titles=["Total Medals", "Gold Medals", "Silver Medals", "Bronze Medals"])
+            fig = make_subplots(rows=2, 
+                                cols=2, 
+                                subplot_titles=["Total Medals", "Gold Medals", "Silver Medals", "Bronze Medals"],
+                                )
             
             fig.add_trace(
                 go.Bar(x=df.index ,y=df["Total"], name="Total Medals"),
@@ -249,7 +253,11 @@ def show_graf(cat, sport, sport_filter, italy_filter, os_season, gender_medals):
                          barmode="group", 
                          color_discrete_map = color_map)
         else:
-             fig = px.bar(df, x=df.index, y= "Total", color=color_map[italy_filter])
+             fig = px.bar(df, 
+                          x=df.index, 
+                          y= "Total", 
+                          color=color_map[italy_filter],
+                          title=f"Total medals over the {italy_filter}")
     return fig
    
 
