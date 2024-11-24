@@ -147,6 +147,7 @@ def show_graf(cat, sport, sport_filter, italy_filter, os_season):
     peram cat: the span of the data
     peram graf: type of graf "bar", "line", "histo"
     """
+
     if cat == "Sports":
         
         
@@ -164,8 +165,8 @@ def show_graf(cat, sport, sport_filter, italy_filter, os_season):
           df = medal_counter("Sport", sport, sport_filter)
           fig = px.histogram(df, x=df.index, y= "Total")
         
-    if sport_filter == "Sex":
-        fig = px.bar(df, x= df.index,y= "Total", color="Sex", barmode="group")
+        if sport_filter == "Sex":
+         fig = px.bar(df, x= df.index,y= "Total", color="Sex", barmode="group")
             
      
     elif cat == "Italy":
