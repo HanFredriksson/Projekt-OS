@@ -50,7 +50,7 @@ app.layout = html.Div([
     html.H1("OS Data Analyser",style={'textAlign':'center'}),
     html.Div([
 
-        html.Label("What category to look into:", style={"width": "200px", "display": "inline-block"}),
+        html.Label("Select a category:", style={"width": "200px", "display": "inline-block"}),
         dcc.Dropdown(
             id="ita-or-sports", 
             options=[{"label": k, "value": v} for k, v in picker.items()], 
@@ -197,7 +197,7 @@ def show_graf(cat, sport, sport_filter, italy_filter, os_season, gender_medals):
             df= medal_counter("Sport", sport, "Sex")
             df.reset_index(inplace=True)
             fig= px.bar(df, x= "Sex", y =["Gold medals", "Silver medals", "Bronze medals"],
-            barmode="stack", title=f"Medals for each gendr in {sport}",
+            barmode="stack", title=f"Medals for each gender in {sport}",
             color_discrete_map={
             "Gold medals":"gold",
             "Silver medals":"silver",
@@ -240,7 +240,7 @@ def show_graf(cat, sport, sport_filter, italy_filter, os_season, gender_medals):
                 go.Bar(x=df.index, y=df["Bronze medals"], name="Bronze Medals"),
                 row=2, col=2
             )
-            fig.update_layout(title_text=f"Medels for {graf_titel_names[os_season]}")
+            fig.update_layout(title_text=f"Medals for {graf_titel_names[os_season]}")
         
         elif gender_medals == "Averages_sex":
             df = averages(df, italy_filter)
