@@ -139,6 +139,7 @@ app.layout = html.Div([
         Output("italy-selecter", "style"),
         Output("gender-medals", "style"),
         Output("season-medals-container", "style"),
+        Output("season-medals", "value"),
     ],
     [
         Input("ita-or-sports", "value"),
@@ -148,19 +149,19 @@ app.layout = html.Div([
 def show_or_hide(selection1, selection2):
     if selection1 == "Sports":
         # Visa sportval, göm alla andra
-        return {"display": "block"}, {"display": "none"}, {"display": "none"}, {"display": "none"}
+        return {"display": "block"}, {"display": "none"}, {"display": "none"}, {"display": "none"}, "Year"  
     
     elif selection1 == "Italy":
         # Kontrollera vilket filter som valts i italy-medals
         if selection2 == "Sex":
             # Visa Average Medals
-            return {"display": "none"}, {"display": "block"}, {"display": "block"}, {"display": "none"}
+            return {"display": "none"}, {"display": "block"}, {"display": "block"}, {"display": "none"}, ""  
         elif selection2 == "Year":
             # Visa Medals-dropdown
-            return {"display": "none"}, {"display": "block"}, {"display": "none"}, {"display": "block"}
+            return {"display": "none"}, {"display": "block"}, {"display": "none"}, {"display": "block"},"",
         else:
             # Standard: Visa bara Italy-selecter
-            return {"display": "none"}, {"display": "block"}, {"display": "none"}, {"display": "none"}
+            return {"display": "none"}, {"display": "block"}, {"display": "none"}, {"display": "none"}, "" 
     
 
 
