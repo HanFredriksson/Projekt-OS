@@ -119,7 +119,7 @@ app.layout = html.Div([
                     options=[
                         {"label": "All Olympics", "value": "Year"},
                         {"label": "Summer Olympics", "value": "Summer"},
-                        {"label": "Winter", "value": "Winter"}
+                        {"label": "Winter Olympics", "value": "Winter"}
                     ],
                     value="",
                     style={"width": "160px"}
