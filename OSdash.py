@@ -20,8 +20,10 @@ ita_filters = {"Total medals over the years": "Year",
 
 sport_filters ={"Age spread": "Age",
                 "Medal spread per country": "NOC",
-                "Gender spread": "Sex",
-                "Medal distribution by gender for each sport":"genderpersport"}
+                "Gender participation over time": "gender_participation",
+                "Medal distribution by gender for each sport":"genderpersport",
+                
+                }
 
 graf_titel_names = {"Year": "All Olympics",
                     "Summer": "Summer Olympics",
@@ -192,24 +194,27 @@ def show_graf(cat, sport, sport_filter, italy_filter, os_season, gender_medals):
 
     if cat == "Sports":
         
-        
         if sport_filter == "genderpersport": 
             df= medal_counter("Sport", sport, "Sex")
             df.reset_index(inplace=True)
             fig= px.bar(df, x= "Sex", y =["Gold medals", "Silver medals", "Bronze medals"],
-            barmode="stack", title=f"Medals for each gendr in {sport}",
+            barmode="stack", title=f"Medals for each gender in {sport}",
             color_discrete_map={
             "Gold medals":"gold",
             "Silver medals":"silver",
             "Bronze medals":"chocolate"
             })
+        elif sport_filter == "gender_participation":
+            df = gender_participation_over_time(os_data.os_filtered_dataframe("Sport", sport))
+            fig = px.line(df, x="Year", y="Count", color="Sex",
+                          title=f"Gender Participation Over Time in {sport}")
         else:
-          df = medal_counter("Sport", sport, sport_filter)
-          fig = px.histogram(df, x=df.index, y= "Total")
-        
-        if sport_filter == "Sex":
-         fig = px.bar(df, x= df.index,y= "Total", color="Sex", barmode="group")
-    
+            df = medal_counter("Sport", sport, sport_filter)
+            if sport_filter == "NOC":
+                df = df[df.values.sum(axis=1) > 5]
+                df.sort_values(by="Total", ascending=True, inplace=True)
+            fig = px.bar(df, x=df.index, y="Total", title=f"Medals in {sport}")
+
             
      
     elif cat == "Italy":
@@ -261,52 +266,79 @@ def show_graf(cat, sport, sport_filter, italy_filter, os_season, gender_medals):
 
 
 def averages(data, index):
-    
-    avg_medals = (
+
+    avg_data = (
     data.groupby(index)[["Gold medals", "Silver medals", "Bronze medals", "Total"]].mean()
     .reset_index()
     .rename(columns={"Total": "Average Medals"}) 
     )
-    move_column = avg_medals.pop("Average Medals")
-    avg_medals.insert(0, "Average Medals", move_column)
+    move_column = avg_data.pop("Average Medals")
+    avg_data.insert(0, "Average Medals", move_column)
 
-    return avg_medals
+    return avg_data
 
+def gender_participation_over_time(data):
 
+    participation = data.groupby(["Year", "Sex"]).size().reset_index(name="Count")
+    participation["Sex"] = participation["Sex"].map({"F": "Female", "M": "Male"})
+    return participation
     
+
 
 def medal_counter(pick, filter, count_in):
-    """Counts the medals from picked country or sport from
-    a grouped column. 
-    Retruns a data frame with total and each variation of medal 
-    with count_in as index
-
-    param pick: are sport or country
-    param filter: Wich sport or country
-    param count_in: For wich columne to count medals
-
-    """
     dff = os_data.os_filtered_dataframe(pick, filter)
-    if count_in == "Sex":
-        count_in = ["Sport", "Sex"]
-    
-    gold_medal = dff[dff["Medal"] == "Gold"].groupby(count_in).size()
-    silver_medal = dff[dff["Medal"] == "Silver"].groupby(count_in).size()
-    bronze_medal = dff[dff["Medal"] == "Bronze"].groupby(count_in).size()
 
-    medal_count = pd.DataFrame({"Gold medals": gold_medal,
-                                "Silver medals": silver_medal,
-                                "Bronze medals": bronze_medal,
-                                }).fillna(0).astype(int).reindex()
-    
-    medal_count["Total"] = medal_count["Gold medals"] + medal_count["Silver medals"] + medal_count["Bronze medals"]
-    
+    if count_in == "Sex":
+         count_in = ["Sport", "Sex"]
+
+    medal_types = ["Gold", "Silver", "Bronze"]
+    medal_counts = {
+        f"{medal} medals": dff[dff["Medal"] == medal].groupby(count_in).size()
+        for medal in medal_types
+    }
+    medal_count = pd.DataFrame(medal_counts).fillna(0).astype(int)
+    medal_count["Total"] = medal_count.sum(axis=1)
+
     if  count_in == ["Sport", "Sex"]:
         medal_count.reset_index(inplace=True)
         medal_count.set_index(count_in[0], inplace= True)
-    
+
     return medal_count
 
+
+
+
+# def medal_counter(pick, filter, count_in):
+#     """Counts the medals from picked country or sport from
+#     a grouped column. 
+#     Retruns a data frame with total and each variation of medal 
+#     with count_in as index
+
+#     param pick: are sport or country
+#     param filter: Wich sport or country
+#     param count_in: For wich columne to count medals
+
+#     """
+#     dff = os_data.os_filtered_dataframe(pick, filter)
+#     if count_in == "Sex":
+#         count_in = ["Sport", "Sex"]
+    
+#     gold_medal = dff[dff["Medal"] == "Gold"].groupby(count_in).size()
+#     silver_medal = dff[dff["Medal"] == "Silver"].groupby(count_in).size()
+#     bronze_medal = dff[dff["Medal"] == "Bronze"].groupby(count_in).size()
+
+#     medal_count = pd.DataFrame({"Gold medals": gold_medal,
+#                                 "Silver medals": silver_medal,
+#                                 "Bronze medals": bronze_medal,
+#                                 }).fillna(0).astype(int).reindex()
+    
+#     medal_count["Total"] = medal_count["Gold medals"] + medal_count["Silver medals"] + medal_count["Bronze medals"]
+    
+#     if  count_in == ["Sport", "Sex"]:
+#         medal_count.reset_index(inplace=True)
+#         medal_count.set_index(count_in[0], inplace= True)
+    
+#     return medal_count
 
 
 
