@@ -199,7 +199,7 @@ def show_graf(cat, sport, sport_filter, italy_filter, os_season, gender_medals):
             "Bronze medals":"chocolate"
             })
         elif sport_filter == "gender_participation":
-            df = gender_participation_over_time(os_data.os_filtered_dataframe("Sport", sport))
+            df = gender_participation(os_data.os_filtered_dataframe("Sport", sport), "Year")
             fig = px.line(df, x="Year", y="Count", color="Sex",
                           title=f"Gender Participation Over Time in {sport}")
         else:
@@ -242,11 +242,43 @@ def show_graf(cat, sport, sport_filter, italy_filter, os_season, gender_medals):
             fig.update_layout(title_text=f"Medals for {graf_titel_names[os_season]}")
         
         elif gender_medals == "Averages_sex" and italy_filter == "Sex":
+            
+            df_gender_participation = gender_participation(os_data.os_filtered_dataframe("NOC", "ITA"), "Sport", True)
             df = averages(df, italy_filter)
-            fig = px.bar(df, x ="Sex",
-                         y= df.columns, 
-                         barmode="group", 
-                         color_discrete_map = color_map)
+            df.sort_values(by="Sport", inplace=True)
+            df_gender_participation.sort_values(by="Sport", inplace=True)
+            df = df.merge(df_gender_participation, on=["Sport", "Sex"], how="inner")
+            
+            
+          
+            bar_trace = go.Bar(
+                x=df['Sport'],
+                y=df['Average Medals'],
+                name='Average Medals',
+                marker_color=df['Sex'].map({'F': 'deepskyblue', 'M': 'tomato'}),
+                text=df['Sex'],  # Display gender on hover
+                hoverinfo="text+y"
+            )
+
+            # Line trace for Gender Participation
+            line_trace = go.Scatter(
+                x=df['Sport'],  
+                y=df['Count'],
+                name='Gender Participation',
+                mode='lines+markers',
+                line=dict(color='palegreen', width=3),
+            )
+
+            # Combine traces into a single figure
+            fig = go.Figure(data=[bar_trace, line_trace])
+
+            # Update layout for clarity
+            fig.update_layout(
+                title="Average Medals and Gender Participation",
+                xaxis_title="Sport",
+                yaxis_title="Average Medals",
+                barmode='group'  # Group bars by gender
+            )
         else:
              fig = px.bar(df, 
                           x=df.index, 
@@ -263,19 +295,35 @@ def show_graf(cat, sport, sport_filter, italy_filter, os_season, gender_medals):
 def averages(data, group):
     
     avg_data = (
-    data.groupby(group)[["Gold medals", "Silver medals", "Bronze medals", "Total"]].mean()
+    data.groupby([group, "Sport"])[["Gold medals", "Silver medals", "Bronze medals", "Total"]].mean()
     .reset_index()
     .rename(columns={"Total": "Average Medals"}) 
     )
     move_column = avg_data.pop("Average Medals")
     avg_data.insert(0, "Average Medals", move_column)
 
+    # # Sorting dataframe for most medels on avrage 
+    # sport_totals = avg_data.groupby('Sport')['Average Medals'].sum().reset_index()
+    # sport_totals = sport_totals.rename(columns={'Average Medals': 'Sport Total Medals'})
+
+    # # Reconnect data to orignal data 
+    # avg_data = avg_data.merge(sport_totals, on='Sport')
+
+    # # Sort after total number of averages over gendr and sport
+    # sorted_df = avg_data.sort_values(by=['Sport Total Medals', 'Average Medals'], 
+    #                                  ascending=[False, False],)
     return avg_data
 
-def gender_participation_over_time(data):
+def gender_participation(data, group,medal_sports= False):
+    print(data)
+    if medal_sports:
+        
+        data = data[data["Medal"].notna()]
+        
+  
 
-    participation = data.groupby(["Year", "Sex"]).size().reset_index(name="Count")
-    participation["Sex"] = participation["Sex"].map({"F": "Female", "M": "Male"})
+    participation = data.groupby([group, "Sex"]).size().reset_index(name="Count")
+
     return participation
     
 
