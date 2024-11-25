@@ -11,8 +11,6 @@ from plotly.subplots import make_subplots
 os_data = OsDataFetcher("../Projekt-OS/Data/athlete_events.csv", "Name")
 
 picker = {"Italy": "Italy", "Sports": "Sports"}
-medals = [ "Gold Medals", "Silver Medals", "Bronze Medals"]
-
 ita_filters = {"Total medals over the years": "Year", 
                "Total medals per sport": "Sport", 
                "Medals per Olympics": "City",
@@ -167,7 +165,7 @@ def show_or_hide(selection1, selection2):
             return {"display": "none"}, {"display": "block"}, {"display": "block"}, {"display": "none"}, ""  
         elif selection2 == "Year":
             # Visa Medals-dropdown
-            return {"display": "none"}, {"display": "block"}, {"display": "none"}, {"display": "block"},"",
+            return {"display": "none"}, {"display": "block"}, {"display": "none"}, {"display": "block"},""
         else:
             # Standard: Visa bara Italy-selecter
             return {"display": "none"}, {"display": "block"}, {"display": "none"}, {"display": "none"}, "" 
@@ -186,11 +184,7 @@ def show_or_hide(selection1, selection2):
     ]
 )
 def show_graf(cat, sport, sport_filter, italy_filter, os_season, gender_medals):
-    """
-    param data: data frame to plot
-    peram cat: the span of the data
-    peram graf: type of graf "bar", "line", "histo"
-    """
+
 
     if cat == "Sports":
         
@@ -247,9 +241,9 @@ def show_graf(cat, sport, sport_filter, italy_filter, os_season, gender_medals):
             )
             fig.update_layout(title_text=f"Medels for {graf_titel_names[os_season]}")
         
-        elif gender_medals == "Averages_sex":
+        elif gender_medals == "Averages_sex" and italy_filter == "Sex":
             df = averages(df, italy_filter)
-            fig = px.bar(df, x="Sex", 
+            fig = px.bar(df, x ="Sex",
                          y= df.columns, 
                          barmode="group", 
                          color_discrete_map = color_map)
@@ -259,16 +253,17 @@ def show_graf(cat, sport, sport_filter, italy_filter, os_season, gender_medals):
                           y= "Total", 
                           color=color_map[italy_filter],
                           title=f"Total medals over the {italy_filter}")
+             
     return fig
    
 
   
 
 
-def averages(data, index):
-
+def averages(data, group):
+    
     avg_data = (
-    data.groupby(index)[["Gold medals", "Silver medals", "Bronze medals", "Total"]].mean()
+    data.groupby(group)[["Gold medals", "Silver medals", "Bronze medals", "Total"]].mean()
     .reset_index()
     .rename(columns={"Total": "Average Medals"}) 
     )
@@ -304,42 +299,6 @@ def medal_counter(pick, filter, count_in):
         medal_count.set_index(count_in[0], inplace= True)
 
     return medal_count
-
-
-
-
-# def medal_counter(pick, filter, count_in):
-#     """Counts the medals from picked country or sport from
-#     a grouped column. 
-#     Retruns a data frame with total and each variation of medal 
-#     with count_in as index
-
-#     param pick: are sport or country
-#     param filter: Wich sport or country
-#     param count_in: For wich columne to count medals
-
-#     """
-#     dff = os_data.os_filtered_dataframe(pick, filter)
-#     if count_in == "Sex":
-#         count_in = ["Sport", "Sex"]
-    
-#     gold_medal = dff[dff["Medal"] == "Gold"].groupby(count_in).size()
-#     silver_medal = dff[dff["Medal"] == "Silver"].groupby(count_in).size()
-#     bronze_medal = dff[dff["Medal"] == "Bronze"].groupby(count_in).size()
-
-#     medal_count = pd.DataFrame({"Gold medals": gold_medal,
-#                                 "Silver medals": silver_medal,
-#                                 "Bronze medals": bronze_medal,
-#                                 }).fillna(0).astype(int).reindex()
-    
-#     medal_count["Total"] = medal_count["Gold medals"] + medal_count["Silver medals"] + medal_count["Bronze medals"]
-    
-#     if  count_in == ["Sport", "Sex"]:
-#         medal_count.reset_index(inplace=True)
-#         medal_count.set_index(count_in[0], inplace= True)
-    
-#     return medal_count
-
 
 
 if __name__ == '__main__':
