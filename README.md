@@ -18,17 +18,21 @@ The main question is looking at how performance is distrubuted through out diffr
 
 - Which Olympics have been the most successful: A bar chart.
 
-- Gender distribution among medals: Also, an average of which gender has performed best in different medal types. A pie chart.
+- Gender distribution among medals in sports: Also, an average of which gender has performed best in different medal types and participaton in those sports. box and line chart.
 
 -----------------------------------------------
 
 Sports (3-4): Swimming, Alpine Skiing, Rowing, Cross Country Skiing
 
+- How the age spread looks for medal winners. box chart
+
 - Countries that excel in the sport with the most medals: Box chart.
 
-- Age distribution for medals: At what ages where they won. Possibly add for diffrent medal typs. A histogram.
+- Gender participation over time. A line chart.
 
-- Gender distribution among medals: Calculate the averages. A pie chart or box chart.
+- Gender distribution among medals: box chart.
+
+
 
 -----------------------------------------------
 
